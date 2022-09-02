@@ -1,5 +1,11 @@
 import express from "express";
 import cors from "cors";
+import { MongoClient } from "mongodb";
+
+const mongoClient = new MongoClient("mongodb://localhost:27017");
+let db;
+
+mongoClient.connect().then(() => db = mongoClient.db("teste"));
 
 const server = express();
 server.use(cors());
@@ -18,8 +24,10 @@ server.post("/participants", (req, res) => {
     }
 
     const lastStatus = Date.now()
-    participants.push({name, lastStatus: lastStatus});
-    messages.push({from: name, to: "Todos", text: "entra na sala...", type: "status", time: lastStatus});
+    db.collection("participants").insertOne({name, lastStatus: lastStatus});
+    db.collection("messages").insertOne({from: name, to: "Todos", text: "entra na sala...", type: "status", time: lastStatus});
+    db.collection("participants").find().toArray().then(users => console.log(users));
+    db.collection("messages").find().toArray().then(messages => console.log(messages));
     res.sendStatus(201);
 })
 
