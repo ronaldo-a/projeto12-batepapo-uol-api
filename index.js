@@ -94,7 +94,7 @@ server.get("/messages", async (req, res) => {
             message.to === user);
     
         if (limit) {
-            showedMessages = messages.slice(0, limit);
+            showedMessages = showedMessages.slice(-limit);
         }
         
         res.send(showedMessages);
@@ -140,7 +140,7 @@ setInterval(async () => {
 }, 15000)
 
 //DELETE MESSAGE
-/*server.delete("/messages/:id", async (req, res) => {
+server.delete("/messages/:id", async (req, res) => {
     const { user } = req.headers;
     const { id } = req.params;
 
@@ -158,6 +158,6 @@ setInterval(async () => {
     } catch {
         res.sendStatus(500);
     }
-})*/
+})
 
 server.listen(5000, () => console.log("listening on 5000"))
