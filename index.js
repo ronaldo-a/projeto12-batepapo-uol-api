@@ -102,7 +102,7 @@ server.post("/status", async (req, res) => {
     try {
         const isUser = await db.collection("participants").findOne({name: user});
         if (isUser) {
-            await db.collection("participants").updateOne({name: user}, {$set: {"lastStatus": dayjs().format("HH:mm:ss")}});
+            await db.collection("participants").updateOne({name: user}, {$set: {"lastStatus": Date.now()}});
             return res.sendStatus(200);
         } 
 
@@ -113,10 +113,22 @@ server.post("/status", async (req, res) => {
     }
 })
 
+//REMOÇÃO AUTOMÁTICA DE USUÁRIO INATIVO
 setInterval(async () => {
-    const participants = await db.collection("participants").find().toArray();
-    const toDelete = participants.filter(() => (Date.now() - participants.lastStatus) > 10000);
-    
+
+    try {
+        const participants = await db.collection("participants").find().toArray();
+        const toDeleteParticipants = participants.filter(participant => (Date.now() - participant.lastStatus) > 10000);
+
+        toDeleteParticipants.map(async participant => {
+            const message = {from: participant.name, to: "Todos", text: "sai da sala...", type: "status", time: dayjs().format("HH:mm:ss")};
+            console.log(message);
+            await db.collection("participants").deleteOne({_id: participant._id});
+            await db.collection("messages").insertOne(message);
+        })
+    } catch (error) {
+        console.log(error);
+    }       
 }, 15000)
 
 
